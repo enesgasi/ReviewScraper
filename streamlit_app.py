@@ -80,7 +80,7 @@ def save_as_word(app_id):
     document.save(byte_io)
     byte_io.seek(0)
 
-    st.success(f"📝 **{game_name}** oyununun incelemeleri Word formatında indirilebilir!")
+    st.success(f"📄 **{game_name}** oyununun incelemeleri Word formatında indirilebilir!")
     st.download_button(
         label="Word dosyasını indir",
         data=byte_io,
@@ -141,7 +141,7 @@ def save_as_csv(app_id):
     text_io.flush()
     byte_io.seek(0)
 
-    st.success(f"📄 **{game_name}** oyununun incelemeleri CSV formatında indirilebilir!")
+    st.success(f"📊 **{game_name}** oyununun incelemeleri CSV formatında indirilebilir!")
 
     # Kullanıcıya indirme butonu sun
     st.download_button(
@@ -171,14 +171,19 @@ if "game_name" in st.session_state:
 else:
     st.warning("App ID'yi yazın ve geçerli bir ID girildiğinden emin olun.")
 
-# Butonları ortalamak için HTML ve CSS
+# Butonları ortalamak için CSS
 st.markdown(
     """
     <style>
     .centered {
         display: flex;
         justify-content: center;
-        gap: 20px; /* Butonlar arasındaki mesafe */
+        gap: 20px;
+        margin-top: 20px;
+    }
+    .loading-icon {
+        display: flex;
+        justify-content: center;
         margin-top: 20px;
     }
     </style>
@@ -189,23 +194,25 @@ st.markdown(
 # Butonları içine koyacağımız div başlıyor
 st.markdown('<div class="centered">', unsafe_allow_html=True)
 
-# Butonları üç sütun içine koyuyoruz
 col1, col2, col3 = st.columns(3)
 
 with col1:
     if st.button("Word olarak kaydet"):
-        save_as_word(app_id)
+        with st.spinner("📄 Word dosyası oluşturuluyor..."):
+            save_as_word(app_id)
 
 with col2:
     if st.button("JSON olarak kaydet"):
-        save_as_json(app_id)
+        with st.spinner("📝 JSON dosyası oluşturuluyor..."):
+            save_as_json(app_id)
 
 with col3:
     if st.button("CSV olarak kaydet"):
-        save_as_csv(app_id)
+        with st.spinner("📊 CSV dosyası oluşturuluyor..."):
+            save_as_csv(app_id)
 
-# Div kapatılıyor
 st.markdown('</div>', unsafe_allow_html=True)
+
 
 
 
