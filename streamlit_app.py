@@ -10,6 +10,16 @@ import time
 import threading
 
 
+# Steam desteklenen diller
+LANGUAGES = {
+    "Tüm Diller": "all",
+    "İngilizce": "english",
+    "Türkçe": "turkish",
+    "Almanca": "german",
+    "Fransızca": "french",
+    "İspanyolca": "spanish"
+}
+
 # Oyunun ismini çekme
 def get_game_name(app_id):
     url = f"https://store.steampowered.com/api/appdetails?appids={app_id}"
@@ -22,26 +32,12 @@ def get_game_name(app_id):
 
 
 # İncelemeleri çekme
-def get_steam_reviews(app_id, num_pages=10):
+def get_steam_reviews(app_id,language,num_pages=10):
     base_url = f"https://steamcommunity.com/app/{app_id}/reviews/"
     reviews = []
 
-    status_text = st.empty()
-    loading = True
-
-    def loading_animation():
-        dots = ["", ".", "..", "..."]
-        i = 0
-        while loading:
-            status_text.write(f"Taranıyor{dots[i]}")
-            i = (i + 1) % len(dots)
-            time.sleep(0.5)
-
-    thread = threading.Thread(target=loading_animation)
-    thread.start()
-
     for page in range(1, num_pages + 1):
-        url = f"{base_url}?p={page}&browsefilter=mostrecent"
+        url = f"{base_url}?p={page}&browsefilter=mostrecent&filterLanguage={language}"
         response = requests.get(url)
         if response.status_code != 200:
             st.error(f"Sayfa {page} alınamadı. Durum kodu: {response.status_code}")
@@ -52,24 +48,24 @@ def get_steam_reviews(app_id, num_pages=10):
             review_text = block.get_text(strip=True)
             reviews.append(review_text)
 
-    loading = False
-    thread.join()
-    status_text.write("İncelemeler başarıyla çekildi!")
-
     return reviews
 
 
 # Word olarak kaydetme
-def save_as_word(app_id):
+def save_as_word(app_id,language):
     game_name = get_game_name(app_id)
-    reviews = get_steam_reviews(app_id)
+    reviews = get_steam_reviews(app_id,language)
 
     if not reviews:
         st.warning("Kaydedilecek bir inceleme bulunamadı.")
         return
 
     document = Document()
-    document.add_heading(f"Reviews for '{game_name}' (App ID: {app_id})", level=1)
+    if language=="all":
+        document.add_heading(f"Reviews for '{game_name}' (App ID: {app_id})", level=1)
+    else:
+        language=str(language).capitalize()
+        document.add_heading(f"{language} Reviews for '{game_name}' (App ID: {app_id})", level=1)
 
     for i, review in enumerate(reviews, start=1):
         document.add_paragraph(f"Review {i}:")
@@ -90,15 +86,16 @@ def save_as_word(app_id):
 
 
 # JSON olarak kaydetme
-def save_as_json(app_id):
+def save_as_json(app_id,language):
     game_name = get_game_name(app_id)
-    reviews = get_steam_reviews(app_id)
+    reviews = get_steam_reviews(app_id,language)
 
     if not reviews:
         st.warning("Kaydedilecek bir inceleme yok.")
         return
 
-    json_data = json.dumps({"App ID": app_id, "Game Name": game_name, "Reviews": reviews}, indent=4, ensure_ascii=False)
+    language=str(language).capitalize()
+    json_data = json.dumps({"App ID": app_id, "Game Name": game_name, "Reviews": reviews,"Language":language}, indent=4, ensure_ascii=False)
 
     st.success(f"📝 **{game_name}** oyununun incelemeleri JSON formatında indirilebilir!")
     st.download_button(
@@ -114,13 +111,13 @@ import io
 
 
 # CSV olarak kaydetme
-def save_as_csv(app_id):
+def save_as_csv(app_id,language):
     if not app_id.isdigit():
         st.error("App ID bir sayı olmalı!")
         return
 
     game_name = get_game_name(app_id)
-    reviews = get_steam_reviews(app_id)
+    reviews = get_steam_reviews(app_id, language)
 
     if not reviews:
         st.warning("Kaydedilecek bir inceleme yok.")
@@ -132,10 +129,10 @@ def save_as_csv(app_id):
 
     # CSV yazma işlemi
     csv_writer = csv.writer(text_io)
-    csv_writer.writerow(["App ID", "Game Name", "Review"])
+    csv_writer.writerow(["App ID", "Game Name", "Review","Language"])
 
     for review in reviews:
-        csv_writer.writerow([app_id, game_name, review])
+        csv_writer.writerow([app_id, game_name, review, language])
 
     # Streamlit için dosyayı sıfırdan okumaya hazır hale getir
     text_io.flush()
@@ -151,8 +148,11 @@ def save_as_csv(app_id):
         mime="text/csv"
     )
 
+def get_game_image(app_id):
+    return f"https://cdn.cloudflare.steamstatic.com/steam/apps/{app_id}/header.jpg"
+
 def update_game_name():
-    app_id = st.session_state.app_id.strip()  # Boşlukları temizle
+    app_id = st.session_state.app_id_input.strip()  # Boşlukları temizle
     if app_id.isdigit() and app_id:
         st.session_state.game_name = get_game_name(app_id)
     else:
@@ -162,9 +162,17 @@ def update_game_name():
 st.title("Steam Review Scraper")
 
 st.write("Oyunun App ID'sini giriniz: ")
-st.text_input("App ID", key="app_id", on_change=update_game_name)
+st.text_input("App ID", key="app_id_input", on_change=update_game_name)
 
-app_id = st.session_state.app_id  # App ID'yi tekrar kullanmak için değişkene ata
+IDapp = st.session_state.app_id_input  # App ID'yi tekrar kullanmak için değişkene ata
+
+language_s = st.selectbox("İncelemeleri hangi dilde almak istersiniz?", list(LANGUAGES.keys()),key="language_select")
+
+selected_language = LANGUAGES[language_s]
+
+if IDapp.isdigit():
+    image_url = get_game_image(IDapp)
+    st.image(image_url,use_container_width=True)
 
 if "game_name" in st.session_state:
     st.markdown(f"🎮 **Oyun Adı:** `{st.session_state.game_name}`")
@@ -199,24 +207,19 @@ col1, col2, col3 = st.columns(3)
 with col1:
     if st.button("Word olarak kaydet"):
         with st.spinner("📄 Word dosyası oluşturuluyor..."):
-            save_as_word(app_id)
+            save_as_word(IDapp,selected_language)
 
 with col2:
     if st.button("JSON olarak kaydet"):
         with st.spinner("📝 JSON dosyası oluşturuluyor..."):
-            save_as_json(app_id)
+            save_as_json(IDapp,selected_language)
 
 with col3:
     if st.button("CSV olarak kaydet"):
         with st.spinner("📊 CSV dosyası oluşturuluyor..."):
-            save_as_csv(app_id)
+            save_as_csv(IDapp,selected_language)
 
 st.markdown('</div>', unsafe_allow_html=True)
-
-
-
-
-
 
 st.write("Aradığınız Oyunun App ID'sini öğrenmek için tıklayın.")
 st.markdown("[SteamDB](https://steamdb.info/apps/)", unsafe_allow_html=True)
