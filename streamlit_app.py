@@ -9,6 +9,7 @@ import io
 import time
 import threading
 
+test = 10
 
 # Steam desteklenen diller
 LANGUAGES = {
