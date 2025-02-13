@@ -1,18 +1,54 @@
-<h1>Review Scraper</h1>
-This little analysing tool allows developers to scrape reviews with a single button click.
-The program scrapes reviews from Steam's website and then inserts the data into the MSSQL database.
-It's developed in order to help new developers analyse games so that they can improve
-their own.
+# Steam Review Scraper
 
-<h2>Prerequisites</h2>
-This program is made with Python 3.12. Anaconda installer is recommended.
-The program uses variety of libraries. used libraries and how to install them are included
-in the code.
-You also need to create a local MSSQL database in your computer and enter your credentials
-into the code.
+## Overview
+Steam Review Scraper is a Streamlit-based application that fetches reviews of a specified game from Steam using its App ID. The extracted reviews can be saved in Word, JSON, or CSV formats.
 
-<h2>Usage</h2>
-You enter the Steam App ID of the game you want to analyse and hit the submit button.
-The program scrapes the reviews and inserts them into your local database
+## Features
+- Fetches game reviews from Steam.
+- Retrieves the game's name using its App ID.
+- Saves reviews in different formats:
+  - **Word (.docx)**
+  - **JSON (.json)**
+  - **CSV (.csv)**
+- Provides a user-friendly Streamlit interface.
+- Displays a loading animation while fetching data.
+- Includes a direct link to find the App ID of games on SteamDB.
+
+## Requirements
+Before running the application, make sure you have the following installed:
+- Python 3.x
+- Required Python libraries:
+  ```sh
+  pip install streamlit requests beautifulsoup4 python-docx
+  ```
+
+## How to Run
+1. Clone this repository or download the source code.
+2. Navigate to the project directory.
+3. Run the following command:
+   ```sh
+   streamlit run your_script.py
+   ```
+4. Open the provided URL in your browser.
+
+## How to Use
+1. Enter the Steam App ID of the game you want to fetch reviews for.
+2. The application will display the game's name.
+3. Click one of the buttons to save the reviews in your preferred format.
+4. The generated file will be available for download directly from the interface.
+
+## Notes
+- If the App ID is invalid, the application will display a warning.
+- The application fetches reviews from multiple pages but is limited to a certain number of pages for efficiency.
+- Ensure you have a stable internet connection while fetching reviews.
+
+## Future Enhancements
+- Add a language selection feature to filter reviews by specific languages.
+- Improve error handling and exception management.
+- Support more file formats such as Excel.
+
+## License
+
+
 
 
