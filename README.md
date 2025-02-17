@@ -47,8 +47,6 @@ Before running the application, make sure you have the following installed:
 - Improve error handling and exception management.
 - Support more file formats such as Excel.
 
-## License
-
 
 
 
