@@ -1,0 +1,6 @@
+requests==2.32.3
+pyodbc==5.2.0
+beautifulsoup4==4.13.3
+docx==0.2.4
+python-docx==1.1.2
+streamlit==1.41.1
