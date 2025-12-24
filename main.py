@@ -158,9 +158,9 @@ class AutocompleteCombobox(ttk.Combobox):
 # ==========================
 tk.Label(
     root,
-    text="KA-FA 1500",
+    text="Steam Review Fetcher",
     font=("Arial", 20, "bold"),
-    bg="#2c3e50",
+    bg="#2040ac",
     fg="white",
     pady=10
 ).pack(fill="x")
